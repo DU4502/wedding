@@ -296,38 +296,86 @@ function initScrollAnimations() {
 // ==================== SLIDE IMAGES ON SCROLL ====================
 function initSlideImages() {
     const slideContainers = document.querySelectorAll('.slide-images');
-    
-    // Điều chỉnh threshold và rootMargin cho mobile
     const isMobile = window.innerWidth <= 768;
-    const observerOptions = {
-        threshold: isMobile ? 0.05 : 0.1,
-        rootMargin: isMobile ? '0px 0px -20px 0px' : '-30px 0px'
-    };
     
-    const slideObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const images = entry.target.querySelectorAll('.slide-img');
-            
-            if (entry.isIntersecting) {
-                images.forEach((img, index) => {
-                    setTimeout(() => {
-                        img.classList.add('active');
-                    }, index * 300);
+    // Function để check nếu element trong viewport
+    function isInViewport(element) {
+        const rect = element.getBoundingClientRect();
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        const threshold = isMobile ? 100 : 50;
+        
+        return (
+            rect.top <= windowHeight - threshold &&
+            rect.bottom >= threshold
+        );
+    }
+    
+    // Function để activate images
+    function activateImages(container) {
+        const images = container.querySelectorAll('.slide-img');
+        images.forEach((img, index) => {
+            if (!img.classList.contains('active')) {
+                setTimeout(() => {
+                    img.classList.add('active');
+                }, index * 300);
+            }
+        });
+    }
+    
+    // Function để check tất cả containers
+    function checkSlideImages() {
+        slideContainers.forEach(container => {
+            if (isInViewport(container)) {
+                activateImages(container);
+            } else if (!isMobile) {
+                // Chỉ remove trên desktop
+                const images = container.querySelectorAll('.slide-img');
+                images.forEach(img => {
+                    img.classList.remove('active');
                 });
-            } else {
-                // Trên mobile không remove class để giữ ảnh hiển thị
-                if (!isMobile) {
+            }
+        });
+    }
+    
+    // Sử dụng IntersectionObserver nếu có hỗ trợ
+    if ('IntersectionObserver' in window) {
+        const observerOptions = {
+            threshold: 0,
+            rootMargin: isMobile ? '50px 0px' : '0px 0px'
+        };
+        
+        const slideObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    activateImages(entry.target);
+                } else if (!isMobile) {
+                    const images = entry.target.querySelectorAll('.slide-img');
                     images.forEach(img => {
                         img.classList.remove('active');
                     });
                 }
-            }
-        });
-    }, observerOptions);
+            });
+        }, observerOptions);
 
-    slideContainers.forEach(container => {
-        slideObserver.observe(container);
-    });
+        slideContainers.forEach(container => {
+            slideObserver.observe(container);
+        });
+    }
+    
+    // Fallback: sử dụng scroll event (đặc biệt quan trọng cho mobile)
+    let scrollTimeout;
+    function handleScroll() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(checkSlideImages, 50);
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', checkSlideImages, { passive: true });
+    
+    // Check ngay khi load
+    setTimeout(checkSlideImages, 100);
+    setTimeout(checkSlideImages, 500);
+    setTimeout(checkSlideImages, 1000);
 }
 
 // ==================== FALLING HEARTS WITH DEPTH ====================

@@ -675,34 +675,33 @@ function initFormSubmission() {
         }
     }
     
-    let hoverInterval;
-    noButton.addEventListener('mouseenter', function(e) {
-        if (!this.querySelector('input[type="radio"]').checked && trollCount < maxTrollCount) {
-            moveNoButton();
-            hoverInterval = setInterval(() => {
-                if (trollCount < maxTrollCount) {
-                    moveNoButton();
-                } else {
-                    clearInterval(hoverInterval);
-                }
-            }, 200);
-        }
-    });
+    let touchHandled = false;
     
-    noButton.addEventListener('mouseleave', function() {
-        clearInterval(hoverInterval);
-    });
-    
-    noButton.addEventListener('touchstart', function(e) {
+    // Xử lý touch cho mobile
+    noButton.addEventListener('touchend', function(e) {
         if (!this.querySelector('input[type="radio"]').checked && trollCount < maxTrollCount) {
             e.preventDefault();
+            e.stopPropagation();
+            touchHandled = true;
             moveNoButton();
+            
+            // Reset flag sau một chút
+            setTimeout(() => {
+                touchHandled = false;
+            }, 300);
         }
     }, { passive: false });
     
+    // Xử lý click cho desktop
     noButton.addEventListener('click', function(e) {
+        // Bỏ qua nếu đã xử lý bởi touch event
+        if (touchHandled) {
+            return;
+        }
+        
         if (!this.querySelector('input[type="radio"]').checked && trollCount < maxTrollCount) {
             e.preventDefault();
+            e.stopPropagation();
             moveNoButton();
         }
     });

@@ -1,0 +1,12 @@
+{
+  "name": "wedding-invitation",
+  "version": "1.0.0",
+  "description": "Ultra-premium wedding invitation for Ngọc Ánh & Đình Vinh",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'Open index.html in browser'"
+  },
+  "keywords": ["wedding", "invitation", "cinematic"],
+  "author": "Wedding Team",
+  "license": "Private"
+}

@@ -297,6 +297,13 @@ function initScrollAnimations() {
 function initSlideImages() {
     const slideContainers = document.querySelectorAll('.slide-images');
     
+    // Điều chỉnh threshold và rootMargin cho mobile
+    const isMobile = window.innerWidth <= 768;
+    const observerOptions = {
+        threshold: isMobile ? 0.05 : 0.1,
+        rootMargin: isMobile ? '0px 0px -20px 0px' : '-30px 0px'
+    };
+    
     const slideObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const images = entry.target.querySelectorAll('.slide-img');
@@ -308,15 +315,15 @@ function initSlideImages() {
                     }, index * 300);
                 });
             } else {
-                images.forEach(img => {
-                    img.classList.remove('active');
-                });
+                // Trên mobile không remove class để giữ ảnh hiển thị
+                if (!isMobile) {
+                    images.forEach(img => {
+                        img.classList.remove('active');
+                    });
+                }
             }
         });
-    }, { 
-        threshold: 0.2,
-        rootMargin: '-50px 0px'
-    });
+    }, observerOptions);
 
     slideContainers.forEach(container => {
         slideObserver.observe(container);
@@ -675,30 +682,33 @@ function initFormSubmission() {
         }
     }
     
-    let touchHandled = false;
+    let lastTouchTime = 0;
     
-    // Xử lý touch cho mobile
+    // Xử lý touch cho mobile - mỗi lần tap = 1 lần nhảy
     noButton.addEventListener('touchend', function(e) {
+        const now = Date.now();
+        // Tránh double tap
+        if (now - lastTouchTime < 300) {
+            return;
+        }
+        lastTouchTime = now;
+        
         if (!this.querySelector('input[type="radio"]').checked && trollCount < maxTrollCount) {
             e.preventDefault();
             e.stopPropagation();
-            touchHandled = true;
             moveNoButton();
-            
-            // Reset flag sau một chút
-            setTimeout(() => {
-                touchHandled = false;
-            }, 300);
         }
     }, { passive: false });
     
-    // Xử lý click cho desktop
-    noButton.addEventListener('click', function(e) {
-        // Bỏ qua nếu đã xử lý bởi touch event
-        if (touchHandled) {
-            return;
+    // Chặn touchstart để tránh hiệu ứng mặc định
+    noButton.addEventListener('touchstart', function(e) {
+        if (!this.querySelector('input[type="radio"]').checked && trollCount < maxTrollCount) {
+            e.preventDefault();
         }
-        
+    }, { passive: false });
+    
+    // Xử lý click cho desktop - mỗi lần click = 1 lần nhảy
+    noButton.addEventListener('click', function(e) {
         if (!this.querySelector('input[type="radio"]').checked && trollCount < maxTrollCount) {
             e.preventDefault();
             e.stopPropagation();

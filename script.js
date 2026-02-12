@@ -500,82 +500,65 @@ function initScrollAnimations() {
 function initSlideImages() {
     const slideContainers = document.querySelectorAll('.slide-images');
     const isMobile = window.innerWidth <= 768;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isRealMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
     
-    console.log('🎨 initSlideImages: Found', slideContainers.length, 'containers, isMobile:', isMobile);
+    console.log('🎨 initSlideImages:', {
+        containers: slideContainers.length,
+        isMobile,
+        isTouchDevice,
+        isRealMobile,
+        width: window.innerWidth,
+        userAgent: userAgent.substring(0, 50)
+    });
     
     // Function để check nếu element trong viewport
     function isInViewport(element) {
         const rect = element.getBoundingClientRect();
         const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-        const threshold = isMobile ? 150 : 50; // Tăng threshold cho mobile
+        const threshold = (isMobile || isRealMobile) ? 150 : 50;
         
-        return (
-            rect.top <= windowHeight - threshold &&
-            rect.bottom >= threshold
-        );
+        const inView = rect.top <= windowHeight - threshold && rect.bottom >= threshold;
+        return inView;
     }
     
     // Function để activate images
     function activateImages(container) {
         const images = container.querySelectorAll('.slide-img');
-        console.log('✨ Activating', images.length, 'images in container');
+        console.log('✨ Activating', images.length, 'images');
         images.forEach((img, index) => {
             if (!img.classList.contains('active')) {
                 setTimeout(() => {
                     img.classList.add('active');
-                    console.log('✅ Image', index, 'activated');
-                }, index * 300);
+                    console.log('✅ Image', index, 'activated, classes:', img.className);
+                }, index * 200); // Giảm delay từ 300ms xuống 200ms
             }
         });
     }
     
     // Function để check tất cả containers
     function checkSlideImages() {
+        let foundInView = 0;
         slideContainers.forEach((container, idx) => {
             const inView = isInViewport(container);
             if (inView) {
-                console.log('👁️ Container', idx, 'is in viewport');
+                foundInView++;
+                console.log('👁️ Container', idx, 'in viewport');
                 activateImages(container);
-            } else if (!isMobile) {
-                // Chỉ remove trên desktop
+            } else if (!isMobile && !isRealMobile) {
+                // Chỉ remove trên desktop thật
                 const images = container.querySelectorAll('.slide-img');
                 images.forEach(img => {
                     img.classList.remove('active');
                 });
             }
         });
+        console.log('📊 Check complete:', foundInView, 'containers in view');
     }
     
-    // Sử dụng IntersectionObserver nếu có hỗ trợ
-    if ('IntersectionObserver' in window) {
-        console.log('📡 Using IntersectionObserver');
-        const observerOptions = {
-            threshold: 0,
-            rootMargin: isMobile ? '100px 0px' : '0px 0px' // Tăng rootMargin cho mobile
-        };
-        
-        const slideObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    console.log('🔍 Observer: Container intersecting');
-                    activateImages(entry.target);
-                } else if (!isMobile) {
-                    const images = entry.target.querySelectorAll('.slide-img');
-                    images.forEach(img => {
-                        img.classList.remove('active');
-                    });
-                }
-            });
-        }, observerOptions);
-
-        slideContainers.forEach(container => {
-            slideObserver.observe(container);
-        });
-    } else {
-        console.log('⚠️ IntersectionObserver not supported, using fallback');
-    }
-    
-    // Fallback: sử dụng scroll event (đặc biệt quan trọng cho mobile)
+    // FORCE CHECK - Không phụ thuộc vào IntersectionObserver
+    // Vì một số mobile browser có thể có vấn đề với IntersectionObserver
     let scrollTimeout;
     function handleScroll() {
         clearTimeout(scrollTimeout);
@@ -584,23 +567,64 @@ function initSlideImages() {
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', () => {
+        console.log('📐 Resize detected');
         setTimeout(checkSlideImages, 100);
     }, { passive: true });
     
-    // QUAN TRỌNG: Check nhiều lần khi load để đảm bảo hoạt động trên mobile
-    console.log('⏰ Scheduling initial checks...');
-    setTimeout(() => { console.log('Check 1'); checkSlideImages(); }, 100);
-    setTimeout(() => { console.log('Check 2'); checkSlideImages(); }, 300);
-    setTimeout(() => { console.log('Check 3'); checkSlideImages(); }, 500);
-    setTimeout(() => { console.log('Check 4'); checkSlideImages(); }, 1000);
-    setTimeout(() => { console.log('Check 5'); checkSlideImages(); }, 2000);
+    // Sử dụng IntersectionObserver NẾU có hỗ trợ (nhưng vẫn có fallback)
+    if ('IntersectionObserver' in window && !isRealMobile) {
+        console.log('📡 Using IntersectionObserver (desktop)');
+        const observerOptions = {
+            threshold: 0,
+            rootMargin: '100px 0px'
+        };
+        
+        const slideObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    console.log('🔍 Observer: Container intersecting');
+                    activateImages(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        slideContainers.forEach(container => {
+            slideObserver.observe(container);
+        });
+    } else {
+        console.log('⚠️ Not using IntersectionObserver, using scroll fallback only');
+    }
+    
+    // QUAN TRỌNG: Check NHIỀU LẦN với delay dài hơn cho mobile
+    console.log('⏰ Scheduling checks...');
+    const checkTimes = [100, 300, 500, 800, 1000, 1500, 2000, 3000];
+    checkTimes.forEach((time, idx) => {
+        setTimeout(() => {
+            console.log(`⏱️ Check ${idx + 1}/${checkTimes.length} at ${time}ms`);
+            checkSlideImages();
+        }, time);
+    });
     
     // Check khi trang load xong hoàn toàn
-    window.addEventListener('load', () => {
-        console.log('📄 Page fully loaded, checking images');
+    if (document.readyState === 'complete') {
+        console.log('📄 Document already loaded');
         setTimeout(checkSlideImages, 100);
-        setTimeout(checkSlideImages, 500);
-    });
+    } else {
+        window.addEventListener('load', () => {
+            console.log('📄 Page fully loaded');
+            setTimeout(checkSlideImages, 100);
+            setTimeout(checkSlideImages, 500);
+            setTimeout(checkSlideImages, 1000);
+        });
+    }
+    
+    // Check khi DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM Content Loaded');
+            setTimeout(checkSlideImages, 100);
+        });
+    }
     
     // Check khi scroll lần đầu
     let hasScrolled = false;
@@ -608,6 +632,16 @@ function initSlideImages() {
         if (!hasScrolled) {
             hasScrolled = true;
             console.log('📜 First scroll detected');
+            setTimeout(checkSlideImages, 100);
+        }
+    }, { once: true, passive: true });
+    
+    // Check khi touch lần đầu (cho mobile)
+    let hasTouched = false;
+    window.addEventListener('touchstart', () => {
+        if (!hasTouched) {
+            hasTouched = true;
+            console.log('👆 First touch detected');
             setTimeout(checkSlideImages, 100);
         }
     }, { once: true, passive: true });

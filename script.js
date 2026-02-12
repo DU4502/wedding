@@ -500,27 +500,20 @@ function initScrollAnimations() {
 function initSlideImages() {
     const slideContainers = document.querySelectorAll('.slide-images');
     const isMobile = window.innerWidth <= 768;
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isRealMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
     
     console.log('🎨 initSlideImages:', {
         containers: slideContainers.length,
-        isMobile,
-        isTouchDevice,
-        isRealMobile,
         width: window.innerWidth,
-        userAgent: userAgent.substring(0, 50)
+        isMobile
     });
     
     // Function để check nếu element trong viewport
     function isInViewport(element) {
         const rect = element.getBoundingClientRect();
         const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-        const threshold = (isMobile || isRealMobile) ? 150 : 50;
+        const threshold = isMobile ? 150 : 50;
         
-        const inView = rect.top <= windowHeight - threshold && rect.bottom >= threshold;
-        return inView;
+        return rect.top <= windowHeight - threshold && rect.bottom >= threshold;
     }
     
     // Function để activate images
@@ -531,8 +524,8 @@ function initSlideImages() {
             if (!img.classList.contains('active')) {
                 setTimeout(() => {
                     img.classList.add('active');
-                    console.log('✅ Image', index, 'activated, classes:', img.className);
-                }, index * 200); // Giảm delay từ 300ms xuống 200ms
+                    console.log('✅ Image activated:', img.src.split('/').pop());
+                }, index * 200);
             }
         });
     }
@@ -541,24 +534,20 @@ function initSlideImages() {
     function checkSlideImages() {
         let foundInView = 0;
         slideContainers.forEach((container, idx) => {
-            const inView = isInViewport(container);
-            if (inView) {
+            if (isInViewport(container)) {
                 foundInView++;
-                console.log('👁️ Container', idx, 'in viewport');
                 activateImages(container);
-            } else if (!isMobile && !isRealMobile) {
-                // Chỉ remove trên desktop thật
+            } else if (!isMobile) {
                 const images = container.querySelectorAll('.slide-img');
-                images.forEach(img => {
-                    img.classList.remove('active');
-                });
+                images.forEach(img => img.classList.remove('active'));
             }
         });
-        console.log('📊 Check complete:', foundInView, 'containers in view');
+        if (foundInView > 0) {
+            console.log('📊', foundInView, 'containers in view');
+        }
     }
     
-    // FORCE CHECK - Không phụ thuộc vào IntersectionObserver
-    // Vì một số mobile browser có thể có vấn đề với IntersectionObserver
+    // LUÔN dùng scroll event (quan trọng nhất cho mobile)
     let scrollTimeout;
     function handleScroll() {
         clearTimeout(scrollTimeout);
@@ -567,84 +556,67 @@ function initSlideImages() {
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', () => {
-        console.log('📐 Resize detected');
         setTimeout(checkSlideImages, 100);
     }, { passive: true });
     
-    // Sử dụng IntersectionObserver NẾU có hỗ trợ (nhưng vẫn có fallback)
-    if ('IntersectionObserver' in window && !isRealMobile) {
-        console.log('📡 Using IntersectionObserver (desktop)');
+    // LUÔN dùng IntersectionObserver (nếu có hỗ trợ) - không phân biệt mobile/desktop
+    if ('IntersectionObserver' in window) {
+        console.log('📡 Using IntersectionObserver');
         const observerOptions = {
             threshold: 0,
-            rootMargin: '100px 0px'
+            rootMargin: isMobile ? '150px 0px' : '50px 0px'
         };
         
         const slideObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    console.log('🔍 Observer: Container intersecting');
                     activateImages(entry.target);
+                } else if (!isMobile) {
+                    const images = entry.target.querySelectorAll('.slide-img');
+                    images.forEach(img => img.classList.remove('active'));
                 }
             });
         }, observerOptions);
 
-        slideContainers.forEach(container => {
-            slideObserver.observe(container);
-        });
-    } else {
-        console.log('⚠️ Not using IntersectionObserver, using scroll fallback only');
+        slideContainers.forEach(container => slideObserver.observe(container));
     }
     
-    // QUAN TRỌNG: Check NHIỀU LẦN với delay dài hơn cho mobile
-    console.log('⏰ Scheduling checks...');
+    // Check nhiều lần khi load
     const checkTimes = [100, 300, 500, 800, 1000, 1500, 2000, 3000];
-    checkTimes.forEach((time, idx) => {
-        setTimeout(() => {
-            console.log(`⏱️ Check ${idx + 1}/${checkTimes.length} at ${time}ms`);
-            checkSlideImages();
-        }, time);
+    checkTimes.forEach(time => {
+        setTimeout(checkSlideImages, time);
     });
     
-    // Check khi trang load xong hoàn toàn
+    // Check khi page load
     if (document.readyState === 'complete') {
-        console.log('📄 Document already loaded');
         setTimeout(checkSlideImages, 100);
     } else {
         window.addEventListener('load', () => {
-            console.log('📄 Page fully loaded');
             setTimeout(checkSlideImages, 100);
             setTimeout(checkSlideImages, 500);
-            setTimeout(checkSlideImages, 1000);
         });
     }
     
     // Check khi DOMContentLoaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('📄 DOM Content Loaded');
             setTimeout(checkSlideImages, 100);
         });
     }
     
-    // Check khi scroll lần đầu
-    let hasScrolled = false;
-    window.addEventListener('scroll', () => {
-        if (!hasScrolled) {
-            hasScrolled = true;
-            console.log('📜 First scroll detected');
+    // Check khi scroll/touch lần đầu
+    let hasInteracted = false;
+    const firstInteraction = () => {
+        if (!hasInteracted) {
+            hasInteracted = true;
+            console.log('👆 First interaction');
             setTimeout(checkSlideImages, 100);
         }
-    }, { once: true, passive: true });
+    };
     
-    // Check khi touch lần đầu (cho mobile)
-    let hasTouched = false;
-    window.addEventListener('touchstart', () => {
-        if (!hasTouched) {
-            hasTouched = true;
-            console.log('👆 First touch detected');
-            setTimeout(checkSlideImages, 100);
-        }
-    }, { once: true, passive: true });
+    window.addEventListener('scroll', firstInteraction, { once: true, passive: true });
+    window.addEventListener('touchstart', firstInteraction, { once: true, passive: true });
+    window.addEventListener('click', firstInteraction, { once: true, passive: true });
 }
 
 // ==================== FALLING HEARTS WITH DEPTH ====================

@@ -1781,6 +1781,51 @@ form, input, textarea {
         font-size: 0.95rem;
     }
     
+    /* SLIDE IMAGES - Tăng kích thước và đảm bảo hiển thị trên mobile */
+    .slide-img {
+        width: 100px !important;
+        height: 75px !important;
+        border: 2px solid rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+        z-index: 10 !important;
+    }
+    
+    /* Đảm bảo ảnh TRÁI hiển thị */
+    .slide-img.slide-left {
+        left: -200px !important;
+    }
+    
+    .slide-img.slide-left.active {
+        left: 3% !important;
+        right: auto !important;
+    }
+    
+    /* Đảm bảo ảnh PHẢI hiển thị */
+    .slide-img.slide-right {
+        right: -200px !important;
+    }
+    
+    .slide-img.slide-right.active {
+        right: 3% !important;
+        left: auto !important;
+    }
+    
+    /* Đảm bảo sections không ẩn overflow */
+    .countdown-section,
+    .invitation-section,
+    .couple-section,
+    .event-section,
+    .gallery-section,
+    .rsvp-section,
+    .wishes-section {
+        overflow: visible !important;
+    }
+    
+    .slide-images {
+        overflow: visible !important;
+        pointer-events: none !important;
+    }
+    
     .envelope-container {
         width: 300px;
         height: 220px;

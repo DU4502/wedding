@@ -1789,6 +1789,7 @@ form, input, textarea {
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
         z-index: 10 !important;
         filter: brightness(1.1) !important;
+        transition: all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
     }
     
     .slide-img.active {
@@ -1798,21 +1799,25 @@ form, input, textarea {
     /* Đảm bảo ảnh TRÁI hiển thị */
     .slide-img.slide-left {
         left: -200px !important;
+        transform: rotate(-8deg) !important;
     }
     
     .slide-img.slide-left.active {
-        left: 3% !important;
+        left: 5% !important;
         right: auto !important;
+        transform: rotate(-8deg) !important;
     }
     
     /* Đảm bảo ảnh PHẢI hiển thị */
     .slide-img.slide-right {
         right: -200px !important;
+        transform: rotate(8deg) !important;
     }
     
     .slide-img.slide-right.active {
-        right: 3% !important;
+        right: 5% !important;
         left: auto !important;
+        transform: rotate(8deg) !important;
     }
     
     /* Đảm bảo sections không ẩn overflow */

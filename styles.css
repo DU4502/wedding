@@ -149,7 +149,7 @@ body.envelope-open {
     transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 3;
     transform: translateY(0);
-    opacity: 0;
+    opacity: 1;
     overflow: hidden;
 }
 
@@ -1781,44 +1781,19 @@ form, input, textarea {
         font-size: 0.95rem;
     }
     
-    /* SLIDE IMAGES - Tăng kích thước và đảm bảo hiển thị trên mobile */
+    /* SLIDE IMAGES - Giảm kích thước trên mobile, opacity 0.9 */
     .slide-img {
-        width: 120px !important;
-        height: 90px !important;
-        border: 3px solid rgba(255, 255, 255, 0.8) !important;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
-        z-index: 10 !important;
-        filter: brightness(1.1) !important;
-        transition: all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        width: 100px !important;
+        height: 75px !important;
+        border: 2px solid rgba(255, 255, 255, 0.6) !important;
+        filter: brightness(1.05) !important;
     }
     
     .slide-img.active {
-        opacity: 1 !important;
+        opacity: 0.9 !important;
     }
     
-    /* Đảm bảo ảnh TRÁI hiển thị */
-    .slide-img.slide-left {
-        left: -200px !important;
-        transform: rotate(-8deg) !important;
-    }
-    
-    .slide-img.slide-left.active {
-        left: 5% !important;
-        right: auto !important;
-        transform: rotate(-8deg) !important;
-    }
-    
-    /* Đảm bảo ảnh PHẢI hiển thị */
-    .slide-img.slide-right {
-        right: -200px !important;
-        transform: rotate(8deg) !important;
-    }
-    
-    .slide-img.slide-right.active {
-        right: 5% !important;
-        left: auto !important;
-        transform: rotate(8deg) !important;
-    }
+    /* Không override left/right/transform - để CSS desktop xử lý transition */
     
     /* Đảm bảo sections không ẩn overflow */
     .countdown-section,

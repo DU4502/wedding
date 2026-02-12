@@ -17,69 +17,284 @@ document.addEventListener('DOMContentLoaded', function() {
     initPerformanceOptimizations();
 });
 
-// ==================== ENVELOPE OPENING EXPERIENCE ====================
+// ==================== PREMIUM REALISTIC ENVELOPE OPENING ====================
 function initEnvelopeOpening() {
     const overlay = document.getElementById('envelopeOverlay');
-    const openBtn = overlay.querySelector('.open-invitation-btn');
+    if (!overlay) return;
+    
+    const openBtn = overlay.querySelector('.envelope-open-btn');
+    const envelopeWrapper = overlay.querySelector('.envelope-wrapper');
     const bgMusic = document.getElementById('bgMusic');
-    const body = document.body;
+    const bodyElement = document.body;
     
-    // Check if user has already opened the invitation
-    const hasOpened = localStorage.getItem('invitationOpened');
+    if (!openBtn || !envelopeWrapper) return;
     
-    if (hasOpened) {
-        overlay.style.display = 'none';
-        return;
+    // Show overlay
+    bodyElement.classList.add('envelope-open');
+    overlay.style.display = 'flex';
+    
+    // Subtle parallax on mouse move
+    let mouseX = 0, mouseY = 0;
+    let currentX = 0, currentY = 0;
+    
+    overlay.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 15;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 15;
+    });
+    
+    function animateParallax() {
+        currentX += (mouseX - currentX) * 0.1;
+        currentY += (mouseY - currentY) * 0.1;
+        
+        if (envelopeWrapper && !envelopeWrapper.classList.contains('opening')) {
+            envelopeWrapper.style.transform = `rotateY(${currentX * 0.5}deg) rotateX(${-currentY * 0.5}deg)`;
+        }
+        
+        requestAnimationFrame(animateParallax);
     }
+    animateParallax();
     
-    body.classList.add('envelope-open');
-    
-    openBtn.addEventListener('click', function() {
-        // Add opening animation class
-        overlay.classList.add('opening');
+    // Button click handler
+    openBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         
-        // Create magical particles
-        createMagicalParticles();
+        console.log('🎬 Opening envelope...');
         
-        // Fade in music
-        bgMusic.volume = 0;
-        bgMusic.play().then(() => {
-            fadeInAudio(bgMusic, 0.5, 2000);
-        }).catch(() => {});
+        // Disable button
+        openBtn.style.pointerEvents = 'none';
+        openBtn.style.opacity = '0';
         
-        // Remove overlay after animation (5s total)
+        // Allow scroll immediately
+        bodyElement.classList.remove('envelope-open');
+        
+        // Start music
+        if (bgMusic) {
+            bgMusic.volume = 0;
+            bgMusic.play().then(() => {
+                fadeInAudio(bgMusic, 0.5, 2000);
+            }).catch(() => {});
+        }
+        
+        // ANIMATION SEQUENCE
+        // Step 1: Open envelope flap (0-1s)
+        setTimeout(() => {
+            envelopeWrapper.classList.add('opening');
+            createSparkles();
+        }, 100);
+        
+        // Step 2: Card slides out (happens automatically via CSS)
+        // Step 3: Blur background (1.5s)
+        setTimeout(() => {
+            overlay.querySelector('.cinematic-bg').style.filter = 'blur(10px)';
+            overlay.querySelector('.cinematic-bg').style.transition = 'filter 0.8s ease-out';
+        }, 1500);
+        
+        // Step 4: Fade to main page (2.5s)
+        setTimeout(() => {
+            overlay.classList.add('transitioning');
+            
+            // Show hero section
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                hero.style.opacity = '0';
+                hero.style.transform = 'scale(1.1)';
+                hero.style.transition = 'all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                
+                requestAnimationFrame(() => {
+                    hero.style.opacity = '1';
+                    hero.style.transform = 'scale(1)';
+                });
+            }
+        }, 2500);
+        
+        // Step 5: Remove overlay (3.5s)
         setTimeout(() => {
             overlay.style.display = 'none';
-            body.classList.remove('envelope-open');
-            localStorage.setItem('invitationOpened', 'true');
-            
-            // Trigger hero zoom animation
-            document.querySelector('.hero').style.animation = 'heroZoomIn 2s ease-out forwards';
-        }, 5000);
+            triggerContentAnimations();
+        }, 3500);
     });
+    
+    // Touch support
+    openBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        openBtn.click();
+    }, { passive: false });
 }
 
-function createMagicalParticles() {
-    const container = document.querySelector('.magical-particles');
-    const particles = ['❤️', '💕', '💗', '💖', '💘', '✨', '🌟', '⭐', '💫'];
+// Create sparkle particles when card emerges
+function createSparkles() {
+    const container = document.querySelector('.particle-container');
+    if (!container) return;
     
-    for (let i = 0; i < 50; i++) {
+    const particles = ['✨', '💫', '⭐', '🌟'];
+    
+    for (let i = 0; i < 20; i++) {
         setTimeout(() => {
             const particle = document.createElement('div');
             particle.textContent = particles[Math.floor(Math.random() * particles.length)];
             particle.style.cssText = `
                 position: absolute;
-                left: 50%;
-                top: 50%;
-                font-size: ${Math.random() * 30 + 20}px;
+                left: ${45 + Math.random() * 10}%;
+                top: ${40 + Math.random() * 20}%;
+                font-size: ${Math.random() * 15 + 10}px;
+                opacity: 0;
                 pointer-events: none;
-                animation: particleExplode ${Math.random() * 2 + 1}s ease-out forwards;
-                transform: translate(-50%, -50%);
+                animation: sparkleFloat ${Math.random() * 1.5 + 1}s ease-out forwards;
             `;
             container.appendChild(particle);
             
-            setTimeout(() => particle.remove(), 3000);
-        }, i * 20);
+            setTimeout(() => particle.remove(), 2000);
+        }, i * 50);
+    }
+    
+    // Add sparkle animation
+    if (!document.getElementById('sparkle-style')) {
+        const style = document.createElement('style');
+        style.id = 'sparkle-style';
+        style.textContent = `
+            @keyframes sparkleFloat {
+                0% {
+                    opacity: 0;
+                    transform: translateY(0) scale(0);
+                }
+                50% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateY(-50px) scale(1) rotate(180deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Trigger smooth content animations
+function triggerContentAnimations() {
+    // Animate hero content
+    const heroContent = document.querySelector('.hero-content');
+    if (heroContent) {
+        heroContent.style.animation = 'heroContentReveal 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards';
+    }
+    
+    // Animate sections on scroll
+    const sections = document.querySelectorAll('section');
+    sections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(30px)';
+        section.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        section.style.transitionDelay = `${index * 0.1}s`;
+        
+        setTimeout(() => {
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, 100);
+    });
+}
+
+// Create floating particles in background
+function createFloatingParticles() {
+    const container = document.querySelector('.floating-particles');
+    if (!container) return;
+    
+    const particles = ['❤️', '💕', '💗', '🌸', '🌹', '✨'];
+    const particleCount = 15;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+        particle.style.cssText = `
+            position: absolute;
+            left: ${Math.random() * 100}%;
+            top: ${Math.random() * 100}%;
+            font-size: ${Math.random() * 20 + 15}px;
+            opacity: ${Math.random() * 0.3 + 0.1};
+            pointer-events: none;
+            animation: floatAround ${Math.random() * 10 + 15}s ease-in-out infinite;
+            animation-delay: ${Math.random() * 5}s;
+        `;
+        container.appendChild(particle);
+    }
+    
+    // Add floating animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes floatAround {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(90deg);
+            }
+            50% {
+                transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(180deg);
+            }
+            75% {
+                transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(270deg);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Create magical explosion when button clicked
+function createMagicalExplosion() {
+    const container = document.querySelector('.magical-particles');
+    if (!container) return;
+    
+    const particles = ['❤️', '💕', '💗', '💖', '💘', '✨', '🌟', '⭐', '💫', '🌸', '🌹'];
+    const particleCount = 60;
+    
+    for (let i = 0; i < particleCount; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+            
+            const angle = (Math.PI * 2 / particleCount) * i;
+            const velocity = Math.random() * 300 + 200;
+            const tx = Math.cos(angle) * velocity;
+            const ty = Math.sin(angle) * velocity;
+            
+            particle.style.cssText = `
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                font-size: ${Math.random() * 25 + 20}px;
+                pointer-events: none;
+                z-index: 10000;
+                animation: particleExplode${i} ${Math.random() * 1.5 + 1.5}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            `;
+            
+            // Create unique animation for each particle
+            const keyframes = `
+                @keyframes particleExplode${i} {
+                    0% {
+                        transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                        opacity: 1;
+                    }
+                    50% {
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1) rotate(${Math.random() * 720}deg);
+                        opacity: 0;
+                    }
+                }
+            `;
+            
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = keyframes;
+            document.head.appendChild(styleSheet);
+            
+            container.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+                styleSheet.remove();
+            }, 3000);
+        }, i * 15);
     }
 }
 
@@ -157,37 +372,25 @@ function initSound() {
     // Set volume
     bgMusic.volume = 0.5;
     
-    // Try autoplay
-    const tryAutoplay = () => {
-        const playPromise = bgMusic.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                isPlaying = true;
-                soundOn.style.display = 'block';
-                soundOff.style.display = 'none';
-            }).catch(() => {
-                isPlaying = false;
-                soundOn.style.display = 'none';
-                soundOff.style.display = 'block';
-            });
-        }
-    };
+    // KHÔNG TỰ ĐỘNG PHÁT NHẠC NỮA
+    // Nhạc chỉ phát khi nhấn nút "Mở thiệp mời"
     
-    // Auto-play on interaction
-    const autoPlayOnInteraction = () => {
-        if (!isPlaying) {
-            bgMusic.play().then(() => {
-                isPlaying = true;
-                soundOn.style.display = 'block';
-                soundOff.style.display = 'none';
-            }).catch(() => {});
-        }
-    };
+    // Kiểm tra trạng thái nhạc
+    bgMusic.addEventListener('play', function() {
+        isPlaying = true;
+        soundOn.style.display = 'block';
+        soundOff.style.display = 'none';
+    });
     
-    document.addEventListener('scroll', autoPlayOnInteraction, { once: true, passive: true });
-    document.addEventListener('click', autoPlayOnInteraction, { once: true });
-    document.addEventListener('touchstart', autoPlayOnInteraction, { once: true, passive: true });
+    bgMusic.addEventListener('pause', function() {
+        isPlaying = false;
+        soundOn.style.display = 'none';
+        soundOff.style.display = 'block';
+    });
+    
+    // Hiển thị icon mặc định (tắt)
+    soundOn.style.display = 'none';
+    soundOff.style.display = 'block';
 
     // Toggle sound
     soundBtn.addEventListener('click', function(e) {

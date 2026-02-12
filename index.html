@@ -11,25 +11,60 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- ENVELOPE OPENING EXPERIENCE -->
+    <!-- PREMIUM REALISTIC ENVELOPE OPENING EXPERIENCE -->
     <div id="envelopeOverlay" class="envelope-overlay">
-        <div class="envelope-container">
-            <div class="envelope-back"></div>
-            <div class="envelope-front"></div>
-            <div class="envelope-flap"></div>
-            <div class="envelope-card">
-                <div class="card-content">
-                    <p class="card-text">Bạn có thiệp mời</p>
-                    <div class="card-heart">❤️</div>
-                    <p class="card-names">Ngọc Ánh & Đình Vinh</p>
+        <!-- Cinematic Background -->
+        <div class="cinematic-bg">
+            <div class="bg-gradient"></div>
+            <div class="bg-vignette"></div>
+        </div>
+        
+        <!-- 3D Envelope Container -->
+        <div class="envelope-scene">
+            <div class="envelope-wrapper">
+                <!-- Envelope Back -->
+                <div class="envelope-back"></div>
+                
+                <!-- Envelope Body -->
+                <div class="envelope-body">
+                    <div class="envelope-inner-shadow"></div>
+                </div>
+                
+                <!-- Invitation Card Inside -->
+                <div class="envelope-card-inside">
+                    <div class="card-glow-border"></div>
+                    <div class="card-content">
+                        <p class="card-label">You're Invited</p>
+                        <div class="card-heart">
+                            <svg viewBox="0 0 32 29.6">
+                                <path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+                            </svg>
+                        </div>
+                        <h2 class="card-names">
+                            <span>Ngọc Ánh</span>
+                            <span class="ampersand">&</span>
+                            <span>Đình Vinh</span>
+                        </h2>
+                        <p class="card-date">27 . 02 . 2026</p>
+                    </div>
+                </div>
+                
+                <!-- Envelope Flap (Top) -->
+                <div class="envelope-flap">
+                    <div class="flap-fold"></div>
                 </div>
             </div>
-            <button class="open-invitation-btn">
-                <span class="btn-text">Mở thiệp mời</span>
+            
+            <!-- Open Button -->
+            <button class="envelope-open-btn">
+                <span class="btn-glow"></span>
+                <span class="btn-text">Mở Thiệp</span>
                 <span class="btn-icon">✉️</span>
             </button>
         </div>
-        <div class="magical-particles"></div>
+        
+        <!-- Particle Effects -->
+        <div class="particle-container"></div>
     </div>
 
     <!-- Ticker Notification -->
@@ -163,7 +198,7 @@
                 </div>
                 <div class="person groom-info" data-aos="fade-left">
                     <div class="person-image">
-                        <img src="image/chure.WebP" alt="Chú rể">
+                        <img src="image/ChuRe.WebP" alt="Chú rể">
                     </div>
                     <h3>Nguyễn Đình Vinh</h3>
                     <p class="person-desc">Con trai ông Nguyễn Đình Hải & bà Đào Thị Kim</p>

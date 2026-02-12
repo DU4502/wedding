@@ -726,8 +726,10 @@ body.envelope-open {
     );
     z-index: 3;
     filter: brightness(0.95);
-    position: relative;
     overflow: hidden;
+    will-change: opacity, transform;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .slide-img::before {
